@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-palace-bg: #FBF9F5;
+    --color-palace-card: #FFFFFF;
+    --color-palace-border: #ECE5D8;
+    --color-palace-border-subtle: #F3ECE1;
+    --color-palace-gold: #947139;
+    --color-palace-gold-light: #F6F1E7;
+    --color-palace-gold-dark: #6D5124;
+    --color-palace-text-main: #1C1916;
+    --color-palace-text-muted: #665E55;
+    --color-palace-text-light: #948A7D;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1C1916;
+    background-color: #FBF9F5;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #FBF9F5;
+    color: #1C1916;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Playfair Display', Georgia, Cambria, serif;
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Refined Minimalist Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FBF9F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DFD7C9;
+  border-radius: 9999px;
+  border: 1px solid #FBF9F5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #BAAE9B;
+}
+
+/* Custom Date & Form Input Reset for High-End Design */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  filter: sepia(50%) hue-rotate(5deg);
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Subtle luxury print styles */
+@media print {
+  @page {
+    margin: 12mm;
+    size: auto;
+  }
+
+  body {
+    background: white !important;
+    color: #000 !important;
+  }
+
+  header, footer, nav, button, .no-print {
+    display: none !important;
+  }
+
+  /* Full screen backdrop removal for print dialog */
+  .fixed.inset-0 {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  #printable-voucher,
+  #printable-tax-invoice {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    background: white !important;
+  }
+}
+
