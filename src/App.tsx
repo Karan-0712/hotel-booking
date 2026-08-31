@@ -13,6 +13,8 @@ import { ProfileView } from './views/ProfileView.tsx';
 import { AdminPortalView } from './views/AdminPortalView.tsx';
 import { ReceptionView } from './views/ReceptionView.tsx';
 import { Room, Booking, HotelSettings, ActiveView } from './types.ts';
+import { ApiService } from './services/api.ts';
+import { ClientStore } from './services/clientStore.ts';
 import { Sparkles, Shield, Heart, Phone, Mail, MapPin } from 'lucide-react';
 
 function MainApp() {
@@ -37,45 +39,28 @@ function MainApp() {
   const [priceRange, setPriceRange] = useState(50000);
   const [specialRequests, setSpecialRequests] = useState('');
 
-  // Data states
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loadingRooms, setLoadingRooms] = useState(true);
-  const [settings, setSettings] = useState<HotelSettings>({
-    hotelName: 'The Grand Imperial Heritage Palace & Luxury Suites',
-    contactEmail: 'reservations@grandimperialpalace.in',
-    contactPhone: '+91 (022) 6655 4321',
-    address: 'Apollo Bunder, Marine Drive, Mumbai, Maharashtra 400001, India',
-    checkInTime: '14:00',
-    checkOutTime: '11:00',
-    taxRatePercent: 12,
-    cancellationPolicy: '100% Free cancellation up to 24 hours prior to check-in.',
-    announcementBanner: '',
-  });
+  // Data states - initializes with 34 luxurious rooms immediately so 0 rooms never occurs
+  const [rooms, setRooms] = useState<Room[]>(() => ClientStore.getRooms());
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const [settings, setSettings] = useState<HotelSettings>(() => ClientStore.getSettings());
 
   // Fetch rooms with live availability based on check-in & check-out
-  const fetchRooms = async (retries = 2) => {
-    setLoadingRooms(true);
+  const fetchRooms = async (retries = 1) => {
     try {
-      let url = '/api/rooms';
-      const params = new URLSearchParams();
-      if (checkInDate) params.append('checkIn', checkInDate);
-      if (checkOutDate) params.append('checkOut', checkOutDate);
-      if (selectedCategory && selectedCategory !== 'All') params.append('category', selectedCategory);
-      if (params.toString()) url += `?${params.toString()}`;
-
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setRooms(data);
-        }
-      } else if (retries > 0) {
-        setTimeout(() => fetchRooms(retries - 1), 1000);
+      const data = await ApiService.getRooms({
+        category: selectedCategory,
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
+      });
+      if (Array.isArray(data) && data.length > 0) {
+        setRooms(data);
       }
     } catch (err) {
-      console.warn('Rooms network fetch notice (retrying if available):', err);
-      if (retries > 0) {
-        setTimeout(() => fetchRooms(retries - 1), 1000);
+      console.warn('Rooms fetch fallback notice:', err);
+      // Fallback to local store
+      const local = ClientStore.getRooms();
+      if (local && local.length > 0) {
+        setRooms(local);
       }
     } finally {
       setLoadingRooms(false);
@@ -85,12 +70,9 @@ function MainApp() {
   // Fetch settings & announcement banner
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
-      if (res.ok) {
-        const data = await res.json();
-        if (data && typeof data === 'object') {
-          setSettings(prev => ({ ...prev, ...data }));
-        }
+      const data = await ApiService.getSettings();
+      if (data) {
+        setSettings(prev => ({ ...prev, ...data }));
       }
     } catch (err) {
       console.warn('Settings fetch notice (using defaults):', err);

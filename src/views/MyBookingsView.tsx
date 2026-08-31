@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Booking } from '../types.ts';
 import { useAuth } from '../context/AuthContext.tsx';
+import { ApiService } from '../services/api.ts';
+import { ClientStore } from '../services/clientStore.ts';
 import {
   Calendar,
   BedDouble,
@@ -43,19 +45,14 @@ export const MyBookingsView: React.FC<MyBookingsViewProps> = ({
   const [selectedInvoiceBooking, setSelectedInvoiceBooking] = useState<Booking | null>(null);
 
   const fetchUserBookings = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     try {
-      const res = await apiFetch('/api/bookings/my');
-      if (res.ok) {
-        const data: Booking[] = await res.json();
-        setBookings(data);
-      }
+      const data = await ApiService.getBookings(user?.uid, user?.email);
+      setBookings(data || []);
     } catch (err) {
       console.error('Failed to fetch user bookings:', err);
+      const local = ClientStore.getBookingsByUser(user?.uid, user?.email);
+      setBookings(local);
     } finally {
       setLoading(false);
     }
@@ -69,18 +66,12 @@ export const MyBookingsView: React.FC<MyBookingsViewProps> = ({
     if (!cancellingBooking) return;
     setCancellingLoading(true);
     try {
-      const res = await apiFetch(`/api/bookings/${cancellingBooking.id}/cancel`, {
-        method: 'POST',
-        body: JSON.stringify({ reason: cancellationReason }),
+      await ApiService.updateBookingStatus(cancellingBooking.id, 'cancelled', {
+        cancellationReason,
+        cancelledAt: new Date().toISOString(),
       });
-
-      if (res.ok) {
-        await fetchUserBookings();
-        setCancellingBooking(null);
-      } else {
-        const err = await res.json();
-        alert(err.error || 'Failed to cancel reservation.');
-      }
+      await fetchUserBookings();
+      setCancellingBooking(null);
     } catch (err) {
       console.error('Cancellation error:', err);
     } finally {

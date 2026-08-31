@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Room, Booking } from '../types.ts';
 import { useAuth } from '../context/AuthContext.tsx';
 import { AuthModal } from '../components/AuthModal.tsx';
+import { ApiService } from '../services/api.ts';
 import {
   ArrowLeft,
   CreditCard,
@@ -287,38 +288,30 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({
 
       const combinedNotes = [specialRequests, addonNotes.join(' • ')].filter(Boolean).join('\nPerks: ');
 
-      const response = await apiFetch('/api/bookings', {
-        method: 'POST',
-        body: JSON.stringify({
-          roomId: room.id,
-          checkInDate,
-          checkOutDate,
-          checkIn: checkInDate,
-          checkOut: checkOutDate,
-          totalNights,
-          nights: totalNights,
-          guestsCount,
-          guests: guestsCount,
-          roomRatePerNight: effectiveNightlyRate,
-          cleaningFee,
-          taxesAndFees,
-          totalAmount: finalTotalAmount,
-          totalPrice: finalTotalAmount,
-          paymentMethod: methodDescription,
-          paymentCardLast4: last4,
-          specialRequests: combinedNotes,
-          guestName: guestName.trim(),
-          guestEmail: guestEmail.trim(),
-          guestPhone: `+91 ${guestPhone.trim()}`,
-        }),
-      });
+      const bookingPayload = {
+        roomId: room.id,
+        checkInDate,
+        checkOutDate,
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
+        totalNights,
+        nights: totalNights,
+        guestsCount,
+        guests: guestsCount,
+        roomRatePerNight: effectiveNightlyRate,
+        cleaningFee,
+        taxesAndFees,
+        totalAmount: finalTotalAmount,
+        totalPrice: finalTotalAmount,
+        paymentMethod: methodDescription,
+        paymentCardLast4: last4,
+        specialRequests: combinedNotes,
+        guestName: guestName.trim(),
+        guestEmail: guestEmail.trim(),
+        guestPhone: `+91 ${guestPhone.trim()}`,
+      };
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to complete reservation');
-      }
-
-      const confirmedBooking: Booking = await response.json();
+      const confirmedBooking = await ApiService.createBooking(bookingPayload);
       onBookingSuccess(confirmedBooking);
     } catch (err: any) {
       console.error('Checkout error:', err);

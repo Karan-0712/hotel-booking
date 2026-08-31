@@ -55,6 +55,7 @@ export interface Booking {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  guestAddress?: string | null;
   checkInDate: string;
   checkOutDate: string;
   totalNights: number;
